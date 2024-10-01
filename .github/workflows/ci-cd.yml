@@ -75,4 +75,7 @@ jobs:
         if: steps.replace-model.outputs.deploy == 'true'
         run: |
           docker build -t ml-model .
-          docker run -d --name ml-model-container -p 5000:5000 ml-model 
+          docker run -d --name ml-model-container -p 5000:5000 ml-model
+          sleep 30
+          docker logs ml-model-container 
+
