@@ -1,0 +1,78 @@
+name: Scheduled Retrain and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"  # Every day at midnight
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # Download the last model artifact (if it exists)
+      - name: Download old model artifact
+        id: download-model
+        uses: actions/download-artifact@v2
+        with:
+          name: stock-price-model
+        continue-on-error: true  # Ignore if no artifact exists (i.e., first run)
+
+      # Fetch new stock data
+      - name: Fetch new data
+        run: |
+          python fetch_data.py
+
+      # Retrain the model with new data
+      - name: Retrain model
+        run: |
+          python train.py
+
+      # Evaluate the new model
+      - name: Evaluate the new model
+        run: |
+          python evaluate.py
+
+      # Check if the new model is better, and if so, replace the artifact
+      - name: Replace model if better
+        id: replace-model
+        run: |
+          if [ $(cat better.txt) = "true" ]; then
+            echo "New model is better, replacing artifact"
+            mv new_stock_price_model.h5 stock_price_model.h5
+            echo "::set-output name=deploy::true"
+          else
+            echo "New model is not better, keeping the old one"
+            echo "::set-output name=deploy::false"
+          fi
+
+      # Upload the current model (either new or old)
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: stock-price-model
+          path: stock_price_model.h5
+
+      # Deploy the new model if it performs better
+      - name: Deploy model
+        if: steps.replace-model.outputs.deploy == 'true'
+        run: |
+          docker build -t ml-model .
+          docker run -d --name ml-model-container ml-model

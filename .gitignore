@@ -1,0 +1,25 @@
+# Ignore CSV files
+*.csv
+
+# Ignore Keras model files
+*.h5
+
+# Ignore evaluation status file
+better.txt
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore environment files
+.env
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore log files
+*.log
+
+# Ignore Docker related files
+*.pid
