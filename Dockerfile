@@ -8,7 +8,7 @@ WORKDIR /app
 COPY requirements2.txt .
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements2.txt
 
 # Copy only the necessary files for the Flask app
 COPY app.py .
