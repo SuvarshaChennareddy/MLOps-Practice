@@ -30,7 +30,7 @@ jobs:
       # Download the last model artifact (if it exists)
       - name: Download old model artifact
         id: download-model
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: stock-price-model
         continue-on-error: true  # Ignore if no artifact exists (i.e., first run)
@@ -65,7 +65,7 @@ jobs:
 
       # Upload the current model (either new or old)
       - name: Upload model artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: stock-price-model
           path: stock_price_model.h5
