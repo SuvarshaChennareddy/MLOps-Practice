@@ -1,3 +1,4 @@
+yfinance
 Flask==2.3.2
 numpy== 1.24.3   # For numerical operations
 tensorflow==2.13.0 # Add any additional ML libraries as needed
