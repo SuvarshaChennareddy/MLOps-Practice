@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 0 * * 0"  # Every week on Sunday at midnight
+    - cron: "*/5 * * * *"  # Every 5 minutes
 
 permissions:
   contents: write  # Grants permission to access and modify contents (required for releases)
