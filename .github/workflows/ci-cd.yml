@@ -37,8 +37,9 @@ jobs:
         run: |
           gh release list
           LATEST_RELEASE=$(gh release list --limit 1 | awk '{print $1}')
+          echo "LATEST_RELEASE is $LATEST_RELEASE"
           gh release download $LATEST_RELEASE --pattern "stock_price_model.h5"
-        continue-on-error: true  # Ignore if no artifact exists (i.e., first run)
+        continue-on-error: false  # Ignore if no artifact exists (i.e., first run)
 
       # Fetch new stock data
       - name: Fetch new data
