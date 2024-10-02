@@ -29,7 +29,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements1.txt
-	
 
       # Download the latest model from the latest GitHub release
       - name: Download latest release artifact
