@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: "0 0 * * 0"  # Every week on Sunday at midnight
 
+permissions:
+  contents: write  # Grants permission to access and modify contents (required for releases)
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -51,26 +54,22 @@ jobs:
         run: |
           python evaluate.py
 
-      # Check if the new model is better, and if so, replace the artifact
+      # Check if the new model is better, and if so, release it
       - name: Replace model if better
         id: replace-model
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
         run: |
           if [ $(cat better.txt) = "true" ]; then
-            echo "New model is better, replacing artifact"
+            echo "New model is better, replacing release"
             mv new_stock_price_model.h5 stock_price_model.h5
             echo "::set-output name=deploy::true"
+            VERSION=$(date +"%Y%m%d%H%M")
+            gh release create $VERSION ./stock_price_model.h5 --title "Model Release $VERSION" --notes "Latest model"
           else
             echo "New model is not better, keeping the old one"
             echo "::set-output name=deploy::false"
           fi
-
-      # Upload the new model as a GitHub Release
-      - name: Create a GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
-        run: |
-          VERSION=$(date +"%Y%m%d%H%M")
-          gh release create $VERSION ./stock_price_model.h5 --title "Model Release $VERSION" --notes "Latest model"
 
       # Deploy the new model if it performs better
       - name: Deploy model
