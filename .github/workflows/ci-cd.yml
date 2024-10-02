@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "*/5 * * * *"  # Every 5 minutes
+    - cron: "0 0 * * 0"  # Every week on Sunday at midnight
 
 jobs:
   build:
@@ -29,6 +29,8 @@ jobs:
 
       # Download the latest model from the latest GitHub release
       - name: Download latest release artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
         run: |
           LATEST_RELEASE=$(gh release list --limit 1 | awk '{print $1}')
           gh release download $LATEST_RELEASE --pattern "stock_price_model.h5"
@@ -56,13 +58,19 @@ jobs:
           if [ $(cat better.txt) = "true" ]; then
             echo "New model is better, replacing artifact"
             mv new_stock_price_model.h5 stock_price_model.h5
-            VERSION=$(date +"%Y%m%d%H%M")
-            gh release create $VERSION ./stock_price_model.h5 --title "Model Release $VERSION" --notes "Latest model"
             echo "::set-output name=deploy::true"
           else
             echo "New model is not better, keeping the old one"
             echo "::set-output name=deploy::false"
           fi
+
+      # Upload the new model as a GitHub Release
+      - name: Create a GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
+        run: |
+          VERSION=$(date +"%Y%m%d%H%M")
+          gh release create $VERSION ./stock_price_model.h5 --title "Model Release $VERSION" --notes "Latest model"
 
       # Deploy the new model if it performs better
       - name: Deploy model
