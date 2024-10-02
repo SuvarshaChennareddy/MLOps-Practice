@@ -35,10 +35,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
         run: |
-          gh release list
-          LATEST_RELEASE=$(gh release list --limit 1 | awk '{print $1}')
-          echo "LATEST_RELEASE is $LATEST_RELEASE"
-          gh release download $LATEST_RELEASE --pattern "stock_price_model.h5"
+          gh release download --pattern "stock_price_model.h5"
         continue-on-error: false  # Ignore if no artifact exists (i.e., first run)
 
       # Fetch new stock data
