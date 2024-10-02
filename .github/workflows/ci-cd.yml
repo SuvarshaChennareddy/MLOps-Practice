@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 0 * * *"  # Every day at midnight
+    - cron: "*/5 * * * *"  # Every 5 minutes
 
 jobs:
   build:
@@ -27,12 +27,11 @@ jobs:
         run: |
           pip install -r requirements1.txt
 
-      # Download the last model artifact (if it exists)
-      - name: Download old model artifact
-        id: download-model
-        uses: actions/download-artifact@v3
-        with:
-          name: stock-price-model
+      # Download the latest model from the latest GitHub release
+      - name: Download latest release artifact
+        run: |
+          LATEST_RELEASE=$(gh release list --limit 1 | awk '{print $1}')
+          gh release download $LATEST_RELEASE --pattern "stock_price_model.h5"
         continue-on-error: true  # Ignore if no artifact exists (i.e., first run)
 
       # Fetch new stock data
@@ -57,18 +56,13 @@ jobs:
           if [ $(cat better.txt) = "true" ]; then
             echo "New model is better, replacing artifact"
             mv new_stock_price_model.h5 stock_price_model.h5
+            VERSION=$(date +"%Y%m%d%H%M")
+            gh release create $VERSION ./stock_price_model.h5 --title "Model Release $VERSION" --notes "Latest model"
             echo "::set-output name=deploy::true"
           else
             echo "New model is not better, keeping the old one"
             echo "::set-output name=deploy::false"
           fi
-
-      # Upload the current model (either new or old)
-      - name: Upload model artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: stock-price-model
-          path: stock_price_model.h5
 
       # Deploy the new model if it performs better
       - name: Deploy model
@@ -77,5 +71,4 @@ jobs:
           docker build -t ml-model .
           docker run -d --name ml-model-container -p 5000:5000 ml-model
           sleep 30
-          docker logs ml-model-container 
-
+          docker logs ml-model-container
