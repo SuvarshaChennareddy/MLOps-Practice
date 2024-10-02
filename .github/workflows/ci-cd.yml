@@ -29,12 +29,14 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements1.txt
+	
 
       # Download the latest model from the latest GitHub release
       - name: Download latest release artifact
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
         run: |
+          gh release list
           LATEST_RELEASE=$(gh release list --limit 1 | awk '{print $1}')
           gh release download $LATEST_RELEASE --pattern "stock_price_model.h5"
         continue-on-error: true  # Ignore if no artifact exists (i.e., first run)
